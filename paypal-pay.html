@@ -1,0 +1,146 @@
+<!--
+@license
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<!--
+Element providing solution to no problem in particular.
+
+##### Example
+
+<seed-element></seed-element>
+
+@element seed-element
+@blurb Element providing solution to no problem in particular.
+@status alpha
+@homepage http://polymerlabs.github.io/seed-element
+-->
+<polymer-element name="paypal-element" attributes="secretID clientID">
+
+	<template>
+
+		<link rel="stylesheet" href="paypal-element.css">
+		<core-ajax
+							 id="paypaltoken" url="https://api.sandbox.paypal.com/v1/oauth2/token"
+							 method="post"
+							 params='{
+										 		"grant_type":"client_credentials"
+											 }'
+							 headers='{"X-Requested-With": "XMLHttpRequest",
+												"Authorization": "Basic {{btoaID()}}"}'
+							 handleAs="json"
+							 on-core-response="{{response}}"
+		>
+		</core-ajax>
+		<core-ajax
+			id="paypalpay" url="https://api.sandbox.paypal.com/v1/payments/payment"
+			headers='{"X-Requested-With": "XMLHttpRequest",
+												"Authorization": "Bearer {{accessToken}}"}'
+			params='{
+					 			"intent":"sale",
+					 			"payer":{
+					 								"payment_method":"paypal"
+												},
+								"redirect_urls":{
+    										"return_url":"http://example.com/your_redirect_url.html",
+    										"cancel_url":"http://example.com/your_cancel_url.html"
+  							},
+								"transactions":[{
+												"amount": {
+														"total":"10.00",
+														"currency":"USD"
+												}
+							}]
+						 }'
+			handleAs="json"
+			on-core-response="{{response2}}"
+		>
+
+		</core-ajax>
+		<paper-button on-click="{{pay}}">
+			Button
+		</paper-button>
+		<content></content>
+
+	</template>
+
+	<script>
+
+		Polymer({
+			/**
+       * The `author` attribute sets an initial author
+       *
+       * @attribute author
+       * @type string
+       * @default 'Miguel Ortega Moreno'
+       */
+			secretID:'',
+			clientID:'',
+			accessToken:'',
+			/**
+       * `fancy` is a property that does something fancy.
+       *
+       * @property fancy
+       * @type bool
+       * @default false
+       */
+			btoaID: function(){
+				return btoa(this.clientID+':'+this.secretID);
+			},
+			ready: function() {
+				// Ready is a lifecycle callback.
+				// You can do setup work in here.
+				// More info: http://www.polymer-project.org/docs/polymer/polymer.html#lifecyclemethods
+			},
+
+			/**
+       * The `sayHello` method will return a greeting.
+       *
+       * @method sayHello
+       * @param {String} greeting Pass in a specific greeting.
+       * @return {String} Returns a string greeting.
+       */
+			pay: function(event,detail,sender) {
+				console.log(this.btoaID());
+				this.$.paypaltoken.go();
+			},
+			response: function(e,d,f) {
+				console.log(d);
+				this.accessToken = d.response.access_token;
+				this.$.paypalpay.go();
+			},
+			response2: function(e,d,f) {
+					console.log(e);
+				console.log('respuesta 2');
+			},
+			/**
+       * The `seed-element-lasers-success` event is fired whenever we
+       * call fireLasers.
+       *
+       * @event seed-element-lasers-success
+       * @param {Object} detail
+       *   @param {string} detail.sound An amazing sound.
+       */
+
+			/**
+       * The `fireLasers` method will fire the lasers. At least
+       * it will dispatch an event that claims lasers were fired :)
+       *
+       * @method fireLasers
+       */
+			fireLasers: function() {
+				this.fire('seed-element-lasers-success', { sound: 'Pew pew pew!' });
+			}
+
+		});
+
+	</script>
+
+</polymer-element>
