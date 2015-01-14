@@ -29,39 +29,43 @@ Element providing solution to no problem in particular.
 		<link rel="stylesheet" href="paypal-pay.css">
 		<core-ajax
 							 id="paypaltoken" url="https://api.sandbox.paypal.com/v1/oauth2/token"
-							 method="post"
+							 method="POST"
+							 handleAs="json"
 							 params='{
-										 		"grant_type":"client_credentials"
+											 "grant_type":"client_credentials"
 											 }'
 							 headers='{"X-Requested-With": "XMLHttpRequest",
 												"Authorization": "Basic {{btoaID()}}"}'
-							 handleAs="json"
 							 on-core-response="{{response}}"
-		>
+							 >
 		</core-ajax>
+
 		<core-ajax
-			id="paypalpay" url="https://api.sandbox.paypal.com/v1/payments/payment"
-			headers='{"X-Requested-With": "XMLHttpRequest",
+							 id="paypalpay" url="https://api.sandbox.paypal.com/v1/payments/payment"
+							 headers='{"X-Requested-With": "XMLHttpRequest",
 												"Authorization": "Bearer {{accessToken}}"}'
-			params='{
-					 			"intent":"sale",
-					 			"payer":{
-					 								"payment_method":"paypal"
-												},
-								"redirect_urls":{
-    										"return_url":"http://example.com/your_redirect_url.html",
-    										"cancel_url":"http://example.com/your_cancel_url.html"
-  							},
-								"transactions":[{
-												"amount": {
-														"total":"0.00",
-														"currency":"USD"
-												}
-							}]
-						 }'
-			handleAs="json"
-			on-core-response="{{response2}}"
-		>
+							contentType="application/json"
+							 method="POST"
+							 body='{
+										 		"intent":"sale",
+										 		"redirect_urls":{
+										 				"return_url":"http://example.com/your_redirect_url.html",
+										 				"cancel_url":"http://example.com/your_cancel_url.html"
+										 },
+										 "payer":{
+										 "payment_method":"paypal"
+										 },
+										 "transactions":[
+										 {
+										 "amount":{
+										 "total":"7.47",
+										 "currency":"USD"
+										 }
+										 }
+										 ]
+										 }'
+							 on-core-response="{{response2}}"
+							 >
 
 		</core-ajax>
 		<paper-button on-click="{{pay}}">
@@ -114,10 +118,10 @@ Element providing solution to no problem in particular.
 			response: function(e,d,f) {
 				console.log(d);
 				this.accessToken = d.response.access_token;
-				this.$.paypalpay.go();
+				this.$.paypalpay.go();				
 			},
 			response2: function(e,d,f) {
-					console.log(e);
+				console.log(e);
 				console.log('respuesta 2');
 			},
 			/**
