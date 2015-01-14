@@ -22,11 +22,11 @@ Element providing solution to no problem in particular.
 @status alpha
 @homepage http://polymerlabs.github.io/seed-element
 -->
-<polymer-element name="paypal-element" attributes="secretID clientID">
+<polymer-element name="paypal-pay" attributes="secretID clientID">
 
 	<template>
 
-		<link rel="stylesheet" href="paypal-element.css">
+		<link rel="stylesheet" href="paypal-pay.css">
 		<core-ajax
 							 id="paypaltoken" url="https://api.sandbox.paypal.com/v1/oauth2/token"
 							 method="post"
@@ -54,7 +54,7 @@ Element providing solution to no problem in particular.
   							},
 								"transactions":[{
 												"amount": {
-														"total":"10.00",
+														"total":"0.00",
 														"currency":"USD"
 												}
 							}]
