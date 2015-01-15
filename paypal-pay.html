@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/core-ajax/core-ajax.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/core-image/core-image.html">
 <!--
 Element providing solution to no problem in particular.
 
@@ -23,8 +24,87 @@ Element providing solution to no problem in particular.
 @homepage http://polymerlabs.github.io/seed-element
 -->
 <polymer-element name="paypal-pay" attributes="secretID clientID">
-
 	<template>
+		<style>
+			paper-button {
+				background: url('http://www.blisslights-spright.com/wp-content/uploads/2013/01/paypal-buy-now-button.png');
+				background-size: contain;
+				background-repeat: no-repeat;
+				color: #0c3557;
+				height: 40px;
+				width: 128px;
+			}
+
+			#toast {
+				position: absolute;
+				bottom:0;
+				background: #323232;
+				color: #f1f1f1;
+				min-height: 48px;
+				min-width: 288px;
+				padding: 16px 24px 12px;
+				box-sizing: border-box;
+				-moz-box-sizing: border-box;
+				box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+				border-radius: 2px;
+				bottom: 12px;
+				left: 12px;
+				font-size: 14px;
+				cursor: default;
+			}
+
+			#toast{
+				cursor: pointer;
+				text-align: center;
+				text-transform: uppercase;
+			}
+			.toast-default{
+				visibility: hidden;
+			}
+			.toast-in {
+				-webkit-animation: fadeInUp 1s; /* Safari, Chrome and Opera > 12.1 */	
+				visibility: visible;
+			}
+			.toast-out {
+				visibility: hidden;
+				/* When hiding the content we should delay the transition
+				of the visibility value, so that it happens at the end
+				of the opacity transition. Note that even though it works
+				with visibility, the same trick doesn’t work with display,
+				position, or height (barring a fixed height). */
+				-webkit-animation: fadeOutDown 2s;
+				-webkit-transition: visibility 0s 2s linear;
+			}
+
+			/* Safari, Chrome and Opera > 12.1 */
+			@-webkit-keyframes fadeInUp {
+				0% {
+					opacity: 0;
+					-webkit-transform: translate3d(0, 100%, 0);
+					transform: translate3d(0, 100%, 0);
+				}
+
+				100% {
+					opacity: 1;
+					-webkit-transform: none;
+					transform: none;
+				}
+			}
+
+			@-webkit-keyframes fadeOutDown {
+				0% {
+					opacity: 1;
+				}
+
+				100% {
+					opacity: 0;
+					-webkit-transform: translate3d(0, 100%, 0);
+
+					transform: translate3d(0, 100%, 0);
+				}
+			}
+
+		</style>
 
 		<link rel="stylesheet" href="paypal-pay.css">
 		<core-ajax
@@ -44,13 +124,14 @@ Element providing solution to no problem in particular.
 							 id="paypalpay" url="https://api.sandbox.paypal.com/v1/payments/payment"
 							 headers='{"X-Requested-With": "XMLHttpRequest",
 												"Authorization": "Bearer {{accessToken}}"}'
-							contentType="application/json"
+							 contentType="application/json"
+							 handleAs="json"
 							 method="POST"
 							 body='{
-										 		"intent":"sale",
-										 		"redirect_urls":{
-										 				"return_url":"http://example.com/your_redirect_url.html",
-										 				"cancel_url":"http://example.com/your_cancel_url.html"
+										 "intent":"sale",
+										 "redirect_urls":{
+										 "return_url":"http://example.com/your_redirect_url.html",
+										 "cancel_url":"http://example.com/your_cancel_url.html"
 										 },
 										 "payer":{
 										 "payment_method":"paypal"
@@ -61,18 +142,19 @@ Element providing solution to no problem in particular.
 										 "total":"7.47",
 										 "currency":"USD"
 										 }
-										 }
-										 ]
+										 }]
 										 }'
 							 on-core-response="{{response2}}"
 							 >
 
 		</core-ajax>
-		<paper-button on-click="{{pay}}">
-			Button
+		<paper-button id="payButton" on-click="{{pay}}">
 		</paper-button>
-		<content></content>
-
+		
+		<div id="toast" class="toast-default">
+			<span id="text">Your payment is still processing</span>
+		</div>
+		
 	</template>
 
 	<script>
@@ -88,6 +170,7 @@ Element providing solution to no problem in particular.
 			secretID:'',
 			clientID:'',
 			accessToken:'',
+			payID:'',
 			/**
        * `fancy` is a property that does something fancy.
        *
@@ -112,17 +195,28 @@ Element providing solution to no problem in particular.
        * @return {String} Returns a string greeting.
        */
 			pay: function(event,detail,sender) {
-				console.log(this.btoaID());
+				this.$.text.innerHTML = "Your payment is still processing"
+				this.$.toast.className="toast-in";
+
+				this.$.payButton.style.cursor='wait';
+				this.$.payButton.text="";
 				this.$.paypaltoken.go();
 			},
 			response: function(e,d,f) {
-				console.log(d);
 				this.accessToken = d.response.access_token;
 				this.$.paypalpay.go();				
 			},
 			response2: function(e,d,f) {
-				console.log(e);
-				console.log('respuesta 2');
+				var a =  this.$.toast;
+				this.$.text.innerHTML = "Payment performed succesfully"
+				setTimeout(function() {
+					a.className="toast-out"
+				},3000);
+
+				this.$.payButton.style.cursor='pointer';
+				this.payID = d.response.id;
+
+
 			},
 			/**
        * The `seed-element-lasers-success` event is fired whenever we
