@@ -23,7 +23,7 @@ Element providing solution to no problem in particular.
 @status alpha
 @homepage http://polymerlabs.github.io/seed-element
 -->
-<polymer-element name="paypal-pay" attributes="secretID clientID">
+<polymer-element name="paypal-pay" attributes="secretID amount currency method clientID">
 	<template>
 		<style>
 			paper-button {
@@ -107,7 +107,7 @@ Element providing solution to no problem in particular.
 		</style>
 
 		<link rel="stylesheet" href="paypal-pay.css">
-		<core-ajax
+		<core-ajax 
 							 id="paypaltoken" url="https://api.sandbox.paypal.com/v1/oauth2/token"
 							 method="POST"
 							 handleAs="json"
@@ -130,95 +130,128 @@ Element providing solution to no problem in particular.
 							 body='{
 										 "intent":"sale",
 										 "redirect_urls":{
-										 "return_url":"http://example.com/your_redirect_url.html",
-										 "cancel_url":"http://example.com/your_cancel_url.html"
+										 "return_url":"http://127.0.0.1:35000/demo.html",
+										 "cancel_url":"http://127.0.0.1:35000/demo.html"
 										 },
 										 "payer":{
-										 "payment_method":"paypal"
+										 "payment_method":"{{method}}"
 										 },
 										 "transactions":[
 										 {
-										 "amount":{
-										 "total":"7.47",
-										 "currency":"USD"
-										 }
+										 "amount": {
+										 	"total":"{{amount}}",
+										 "currency":"{{currency}}"
+										 },
+										 "description":"This is the payment transaction description."
 										 }]
 										 }'
 							 on-core-response="{{response2}}"
 							 >
 
 		</core-ajax>
-		<paper-button id="payButton" on-click="{{pay}}">
-		</paper-button>
-		
-		<div id="toast" class="toast-default">
-			<span id="text">Your payment is still processing</span>
-		</div>
-		
+		<!--
+<core-ajax
+id="paypalpago" url="{{href}}"
+headers='{"X-Requested-With": "XMLHttpRequest",
+"Authorization": "Bearer {{accessToken}}"}'
+contentType="application/json"
+params='{"payer_id":"ATVQXBG6396AY"}'
+on-core-response="{{response3}}"
+>
+
+
+-->
+		</core-ajax>
+
+	<paper-button id="payButton" on-click="{{pay}}">
+	</paper-button>
+
+	<div id="toast" class="toast-default">
+		<span id="text">Your payment is still processing</span>
+	</div>
+
 	</template>
 
-	<script>
+<script>
 
-		Polymer({
-			/**
+	Polymer({
+		/**
        * The `author` attribute sets an initial author
        *
        * @attribute author
        * @type string
        * @default 'Miguel Ortega Moreno'
        */
-			secretID:'',
-			clientID:'',
-			accessToken:'',
-			payID:'',
-			/**
+		secretID:'',
+		clientID:'',
+		amount:'',
+		currency:'EUR',
+		method:'paypal',
+		accessToken:'',
+		payID:'',
+		href:'',
+		timestam:'',
+		/**
        * `fancy` is a property that does something fancy.
        *
        * @property fancy
        * @type bool
        * @default false
        */
-			btoaID: function(){
-				return btoa(this.clientID+':'+this.secretID);
-			},
-			ready: function() {
-				// Ready is a lifecycle callback.
-				// You can do setup work in here.
-				// More info: http://www.polymer-project.org/docs/polymer/polymer.html#lifecyclemethods
-			},
+		btoaID: function(){
+			return btoa(this.clientID+':'+this.secretID);
+		},
+		ready: function() {
+			// Ready is a lifecycle callback.
+			// You can do setup work in here.
+			// More info: http://www.polymer-project.org/docs/polymer/polymer.html#lifecyclemethods
+		},
 
-			/**
+		/**
        * The `sayHello` method will return a greeting.
        *
        * @method sayHello
        * @param {String} greeting Pass in a specific greeting.
        * @return {String} Returns a string greeting.
        */
-			pay: function(event,detail,sender) {
-				this.$.text.innerHTML = "Your payment is still processing"
-				this.$.toast.className="toast-in";
+		pay: function(event,detail,sender) {
+			this.$.text.innerHTML = "Your payment is still processing"
+			this.$.toast.className="toast-in";
 
-				this.$.payButton.style.cursor='wait';
-				this.$.payButton.text="";
-				this.$.paypaltoken.go();
-			},
-			response: function(e,d,f) {
-				this.accessToken = d.response.access_token;
-				this.$.paypalpay.go();				
-			},
-			response2: function(e,d,f) {
-				var a =  this.$.toast;
-				this.$.text.innerHTML = "Payment performed succesfully"
-				setTimeout(function() {
-					a.className="toast-out"
-				},3000);
+			this.$.payButton.style.cursor='wait';
+			this.$.payButton.text="";
+			this.$.paypaltoken.go();
+		},
+		response: function(e,d,f) {
+			this.accessToken = d.response.access_token;
+			console.log("Respuesta 1");
+			console.log(e);
+			this.$.paypalpay.go();				
+		},
+		response2: function(e,d,f) {
+			console.log("Respuesta 2");	
+			console.log(e);
+			var a =  this.$.toast;
+			this.href = d.response.links[1].href;
+			var xhr = new XMLHttpRequest();
+			console.log(this.href);
+			window.location.assign(this.href);
+			
+			this.$.text.innerHTML = "Payment performed succesfully";
+			setTimeout(function() {
+				a.className="toast-out"
+			},3000);
 
-				this.$.payButton.style.cursor='pointer';
-				this.payID = d.response.id;
+			this.$.payButton.style.cursor='pointer';
+			this.payID = d.response.id;
+			/*				this.$.paypalpago.go();*/
 
-
-			},
-			/**
+		},
+		response3: function(e,d,f) {
+			console.log('Return 3');
+			console.log(e);
+		},
+		/**
        * The `seed-element-lasers-success` event is fired whenever we
        * call fireLasers.
        *
@@ -227,18 +260,18 @@ Element providing solution to no problem in particular.
        *   @param {string} detail.sound An amazing sound.
        */
 
-			/**
+		/**
        * The `fireLasers` method will fire the lasers. At least
        * it will dispatch an event that claims lasers were fired :)
        *
        * @method fireLasers
        */
-			fireLasers: function() {
-				this.fire('seed-element-lasers-success', { sound: 'Pew pew pew!' });
-			}
+		fireLasers: function() {
+			this.fire('seed-element-lasers-success', { sound: 'Pew pew pew!' });
+		}
+		
+	});
 
-		});
-
-	</script>
+</script>
 
 </polymer-element>

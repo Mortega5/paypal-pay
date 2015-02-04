@@ -2,7 +2,7 @@
   "name": "seed-element",
   "version": "0.0.0",
   "authors": [
-    "Anonymous <anonymous@example.com>"
+    "Ana Isabel Lopera Lopez, Miguel Ortega Moreno, Luis Ruiz Ruiz miguel.ortega.moreno5@gmail.com"
   ],
   "description": "Element providing solution to no problem in particular.",
   "keywords": [
@@ -13,7 +13,7 @@
   ],
   "main": "seed-element.html",
   "license": "MIT",
-  "homepage": "https://github.com/<USERNAME>/seed-element/",
+  "homepage": "https://github.com/Mortega5/paypal-pay/",
   "ignore": [
     "/.*",
     "/tests/"
